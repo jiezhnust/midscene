@@ -17,17 +17,22 @@ export interface PreparedUserPrompt {
   referenceImages: PreparedReferenceImage[];
 }
 
-const prepareReferenceImages = async (
+export const prepareReferenceImages = async (
   multimodalPrompt?: TMultimodalPrompt,
 ): Promise<PreparedReferenceImage[]> => {
   const referenceImages: PreparedReferenceImage[] = [];
+  const preparedUrls = new Map<string, string>();
   for (const image of multimodalPrompt?.images ?? []) {
-    referenceImages.push({
-      name: image.name,
-      url: await preProcessImageUrl(
+    const url =
+      preparedUrls.get(image.url) ??
+      (await preProcessImageUrl(
         image.url,
         !!multimodalPrompt?.convertHttpImage2Base64,
-      ),
+      ));
+    preparedUrls.set(image.url, url);
+    referenceImages.push({
+      name: image.name,
+      url,
     });
   }
   return referenceImages;
